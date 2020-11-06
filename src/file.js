@@ -12,6 +12,7 @@ const isValidFile = (path, writable = false) => {
     return false;
   }
 };
+
 const createFile = (path) => {
   fs.open(path, 'w', function (err) {
     if (err) throw err;
