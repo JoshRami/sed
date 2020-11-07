@@ -9,7 +9,9 @@ const isValidFile = (path, writable = false) => {
     fs.accessSync(path, ...permissions);
     return true;
   } catch (error) {
-    return false;
+    //Not returns a Error object because it's not intended to show the error stack trace
+    console.error('No such file, or does not have enough permissions');
+    process.exit();
   }
 };
 
@@ -18,8 +20,22 @@ const createFile = (path) => {
     if (err) throw err;
   });
 };
-
+const readCommands = (path) => {
+  const commands = [];
+  if (isValidFile(path)) {
+    try {
+      const data = fs.readFileSync(path, 'UTF-8');
+      commands.push(...data.split(/\r?\n/));
+    } catch (err) {
+      console.log(
+        `Something bad happened while reading process of file ${path}`
+      );
+    }
+  }
+  return commands;
+};
 module.exports = {
   isValidFile,
   createFile,
+  readCommands,
 };
