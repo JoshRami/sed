@@ -9,9 +9,14 @@ const isValidFile = (path, writable = false) => {
     fs.accessSync(path, ...permissions);
     return true;
   } catch (error) {
-    //Not returns a Error object because it's not intended to show the error stack trace
+    // Not returns a Error object because it's not intended to show the error stack trace
     console.error('No such file, or does not have enough permissions');
     process.exit();
+  }
+};
+const getCheckedFilePath = (path) => {
+  if (isValidFile(path)) {
+    return path;
   }
 };
 
@@ -35,7 +40,7 @@ const readCommands = (path) => {
   return commands;
 };
 module.exports = {
-  isValidFile,
   createFile,
   readCommands,
+  getCheckedFilePath,
 };

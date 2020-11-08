@@ -26,4 +26,4 @@ exports.commands = yargs(hideBin(process.argv))
     describe: 'output will be save in a new file',
     type: 'boolean',
   })
-  .help();
+  .help().argv;
