@@ -1,46 +1,57 @@
 const fs = require('fs');
+const path = require('path');
 
-const isValidFile = (path, writable = false) => {
+const isValidFile = (filePath, writable = false) => {
   const permissions = [fs.constants.F_OK, fs.constants.R_OK];
   if (writable) {
     permissions.push(fs.constants.W_OK);
   }
   try {
-    fs.accessSync(path, ...permissions);
+    fs.accessSync(filePath, ...permissions);
     return true;
   } catch (error) {
-    // Not returns a Error object because it's not intended to show the error stack trace
-    console.error('No such file, or does not have enough permissions');
-    process.exit();
+    throw Error('sed: no such file or does not have enough permmissions');
   }
 };
-const getCheckedFilePath = (path) => {
-  if (isValidFile(path)) {
-    return path;
+// eslint-disable-next-line consistent-return
+const getCheckedFilePath = (filePath) => {
+  if (isValidFile(filePath)) {
+    return filePath;
   }
 };
 
-const createFile = (path) => {
-  fs.open(path, 'w', function (err) {
-    if (err) throw err;
-  });
-};
-const readCommands = (path) => {
+const readCommands = (filePath) => {
   const commands = [];
-  if (isValidFile(path)) {
+  if (isValidFile(filePath, true)) {
     try {
-      const data = fs.readFileSync(path, 'UTF-8');
+      const data = fs.readFileSync(filePath, 'UTF-8');
       commands.push(...data.split(/\r?\n/));
     } catch (err) {
-      console.log(
-        `Something bad happened while reading process of file ${path}`
+      throw Error(
+        `Something bad happened while reading process of file ${filePath}`
       );
     }
   }
   return commands;
 };
+
+const makeFileCopy = (filePath) => {
+  try {
+    const absoluteFilePath = path.resolve(filePath);
+    const fileName = path.basename(absoluteFilePath);
+    const directory = absoluteFilePath.replace(fileName, '');
+    const newFilePath = path.join(directory, `new-${fileName}`);
+
+    fs.renameSync(absoluteFilePath, newFilePath);
+    fs.copyFileSync(newFilePath, absoluteFilePath);
+    return { newFilePath, absoluteFilePath };
+  } catch (error) {
+    throw Error('Something bad happened while making a file copy');
+  }
+};
+
 module.exports = {
-  createFile,
+  makeFileCopy,
   readCommands,
   getCheckedFilePath,
 };

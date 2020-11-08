@@ -8,7 +8,6 @@ const parseInput = (argv) => {
     path: '',
   };
   const hasManyCommands = hasOptions(argv);
-
   if (!hasManyCommands) {
     const parsedCommand = getValidCommand(argv._[0]);
     const filePath = file.getCheckedFilePath(argv._[1]);
@@ -27,7 +26,9 @@ const parseCommands = (argv) => {
   let commands = [];
   let commandsFilePath = '';
   if (argv.e) {
-    commands.push(...argv.e);
+    typeof argv.e === 'string'
+      ? commands.push(argv.e)
+      : commands.push(...argv.e);
   }
   if (argv.f) {
     commandsFilePath = file.getCheckedFilePath(argv.f);
@@ -36,6 +37,9 @@ const parseCommands = (argv) => {
   commands = commands.filter((command) => {
     return isValidCommand(command);
   });
+  if (!commands.length) {
+    throw Error('Commands entered are all invalid');
+  }
   return commands;
 };
 
@@ -51,26 +55,38 @@ const hasOptions = (argv) => {
 };
 
 const isValidCommand = (cmd) => {
-  try {
-    const PARTS_LENGTH = 4;
-    const cmdParts = cmd.split('/');
+  const PARTS_LENGTH = 4;
+  const cmdParts = cmd.split('/');
 
-    if (cmdParts.length !== PARTS_LENGTH) {
-      return false;
-    }
-    const [command, search, , flags] = cmdParts;
-    const isSubsitute = command === 's';
-    const nonEmptySearch = search !== '';
-    const validFlags =
-      flags === '' || containsFlags(flags, 'g', 'p', 'gp', 'pg');
-    return isSubsitute && nonEmptySearch && validFlags;
-  } catch (error) {
-    throw Error(error.message);
+  if (cmdParts.length !== PARTS_LENGTH) {
+    return false;
   }
+  const [command, search, , flags] = cmdParts;
+  const isSubsitute = command === 's';
+  const nonEmptySearch = search !== '';
+  const validFlags = flags === '' || containsFlags(flags, 'g', 'p', 'gp', 'pg');
+  return isSubsitute && nonEmptySearch && validFlags;
 };
 const getValidCommand = (command) => {
-  if (isValidCommand(command)) {
-    return command;
+  if (!command || !isValidCommand(command)) {
+    throw Error('Have not especified a valid command');
   }
+  return command;
 };
-console.log(parseInput(require('./cli.js').commands));
+const buildCommand = (command) => {
+  const cmd = {
+    search: '',
+    replace: '',
+    g: false,
+    p: true,
+  };
+  let optionArguments;
+  [, cmd.search, cmd.replace, optionArguments] = command.split('/');
+  cmd.g = optionArguments.includes('g');
+  cmd.p = optionArguments.includes('p');
+  return cmd;
+};
+module.exports = {
+  buildCommand,
+  parseInput,
+};
