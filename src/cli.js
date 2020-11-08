@@ -1,8 +1,6 @@
-const yargs = require('yargs/yargs');
-// eslint-disable-next-line node/no-missing-require
-const { hideBin } = require('yargs/helpers');
+const yargs = require('yargs/yargs')(process.argv.slice(2));
 
-exports.commands = yargs(hideBin(process.argv))
+exports.commands = yargs
   .command('f', 'expects a file path containing commands', {
     url: {
       alias: 'file',
