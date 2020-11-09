@@ -38,10 +38,12 @@ async function Substitute() {
       isLineReplaced = originalLine !== line;
       if (isLineReplaced) {
         originalLine = line;
-        if (input.i) {
-          writeStream.write(`${line}\n`);
-        } else if (cmd.p) {
-          process.stdout.write(`${line}\n`);
+        if (cmd.p) {
+          if (input.i) {
+            writeStream.write(`${line}\n`);
+          } else {
+            process.stdout.write(`${line}\n`);
+          }
         }
       }
     }
@@ -54,5 +56,4 @@ async function Substitute() {
     }
   }
 }
-
 module.exports = { Substitute };
