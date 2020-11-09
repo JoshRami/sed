@@ -1,7 +1,8 @@
 # naive sed
 
 ![](https://i2.wp.com/www.complexsql.com/wp-content/uploads/2018/06/SED.png?ssl=1)
-**This project contains the propose solution to Week 1 assignment **
+
+### **This project contains the propose solution to Week 1 assignment**
 The goal is to build a search command implementation
 
 ## Requiriments
