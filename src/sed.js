@@ -3,18 +3,20 @@ const readline = require('readline');
 const command = require('./command.js');
 const file = require('./file.js');
 const cli = require('./cli.js');
+const { getDirectory } = require('./file.js');
 
 async function Substitute() {
   let writeStream;
-  let fileStream;
   const input = command.parseInput(cli.commands);
+  const fileStream = fs.createReadStream(input.path);
 
   if (input.i) {
-    const { newFilePath, absoluteFilePath } = file.makeFileCopy(input.path);
+    const fileName = file.getFileName(input.path);
+    const directory = getDirectory(input.path, fileName);
+
+    const newfileName = `new_${fileName}`;
+    const newFilePath = file.createEmptyFile(directory, newfileName);
     writeStream = fs.createWriteStream(newFilePath);
-    fileStream = fs.createReadStream(absoluteFilePath);
-  } else {
-    fileStream = fs.createReadStream(input.path);
   }
   const rl = readline.createInterface({
     input: fileStream,

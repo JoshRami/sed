@@ -10,13 +10,16 @@ const isValidFile = (filePath, writable = false) => {
     fs.accessSync(filePath, ...permissions);
     return true;
   } catch (error) {
-    throw Error('sed: no such file or does not have enough permmissions');
+    throw Error(
+      `sed: no such file or does not have enough permmissions: ${filePath}`
+    );
   }
 };
 // eslint-disable-next-line consistent-return
 const getCheckedFilePath = (filePath) => {
-  if (isValidFile(filePath)) {
-    return filePath;
+  const absoluteFilePath = getAbsoluteFilePath(filePath);
+  if (isValidFile(absoluteFilePath)) {
+    return absoluteFilePath;
   }
 };
 
@@ -28,30 +31,39 @@ const readCommands = (filePath) => {
       commands.push(...data.split(/\r?\n/));
     } catch (err) {
       throw Error(
-        `Something bad happened while reading process of file ${filePath}`
+        `sed: Something bad happened while reading process of file ${filePath}`
       );
     }
   }
   return commands;
 };
 
-const makeFileCopy = (filePath) => {
+const createEmptyFile = (directory, fileName) => {
   try {
-    const absoluteFilePath = path.resolve(filePath);
-    const fileName = path.basename(absoluteFilePath);
-    const directory = absoluteFilePath.replace(fileName, '');
-    const newFilePath = path.join(directory, `new-${fileName}`);
-
-    fs.renameSync(absoluteFilePath, newFilePath);
-    fs.copyFileSync(newFilePath, absoluteFilePath);
-    return { newFilePath, absoluteFilePath };
+    const newFilePath = path.join(directory, fileName);
+    fs.closeSync(fs.openSync(newFilePath, 'w'));
+    return newFilePath;
   } catch (error) {
-    throw Error('Something bad happened while making a file copy');
+    throw Error('sed: Something bad happened while making a new file');
   }
+};
+const getAbsoluteFilePath = (filePath) => {
+  if (path.isAbsolute(filePath)) {
+    return filePath;
+  }
+  return path.resolve(filePath);
+};
+const getFileName = (filePath) => {
+  return path.basename(filePath);
+};
+const getDirectory = (filePath, fileName) => {
+  return filePath.replace(fileName, '');
 };
 
 module.exports = {
-  makeFileCopy,
+  createEmptyFile,
   readCommands,
   getCheckedFilePath,
+  getFileName,
+  getDirectory,
 };

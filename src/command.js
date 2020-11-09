@@ -38,7 +38,7 @@ const parseCommands = (argv) => {
     return isValidCommand(command);
   });
   if (!commands.length) {
-    throw Error('Commands entered are all invalid');
+    throw Error('sed: Commands entered are all invalid');
   }
   return commands;
 };
@@ -69,7 +69,7 @@ const isValidCommand = (cmd) => {
 };
 const getValidCommand = (command) => {
   if (!command || !isValidCommand(command)) {
-    throw Error('Have not especified a valid command');
+    throw Error('sed: Have not especified a valid command');
   }
   return command;
 };
