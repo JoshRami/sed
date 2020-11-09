@@ -23,6 +23,8 @@ async function Substitute() {
 
   for await (let line of rl) {
     let cmd = '';
+    let originalLine = line;
+    let isLineReplaced = false;
     for (cmd of input.commands) {
       cmd = command.buildCommand(cmd);
       if (cmd.g) {
@@ -32,14 +34,23 @@ async function Substitute() {
       } else {
         line = line.replace(cmd.search, cmd.replace);
       }
-      if (cmd.p && !input.i) {
-        process.stdout.write(`${line}\n`);
+
+      isLineReplaced = originalLine !== line;
+      if (isLineReplaced) {
+        originalLine = line;
+        if (input.i) {
+          writeStream.write(`${line}\n`);
+        } else if (cmd.p) {
+          process.stdout.write(`${line}\n`);
+        }
       }
     }
-    if (input.i) {
-      writeStream.write(`${line}\n`);
-    } else if (cmd.p || !input.n) {
-      process.stdout.write(`${line}\n`);
+    if (!input.n) {
+      if (input.i) {
+        writeStream.write(`${line}\n`);
+      } else {
+        process.stdout.write(`${line}\n`);
+      }
     }
   }
 }
