@@ -44,3 +44,10 @@ The sintaxis for valid command input are:
 ##### Substitute command accepted sintaxis
 
 This implementations use files path with fs and path node core modules, so it works on any OS.
+
+##### Usage
+
+In order to run the sed project, run: ***node index.js* { substitute command }**
+
+_Command line should be in repo's root folder_
+
