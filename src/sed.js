@@ -3,59 +3,84 @@ const readline = require('readline');
 const command = require('./command.js');
 const file = require('./file.js');
 const cli = require('./cli.js');
-const { getDirectory } = require('./file.js');
 
 async function Substitute() {
   let writeStream;
   const input = command.parseInput(cli.commands);
   const fileStream = fs.createReadStream(input.path);
-
-  if (input.i) {
-    const fileName = file.getFileName(input.path);
-    const directory = getDirectory(input.path, fileName);
-
-    const newfileName = `new_${fileName}`;
-    const newFilePath = file.createEmptyFile(directory, newfileName);
-    writeStream = fs.createWriteStream(newFilePath);
-  }
   const rl = readline.createInterface({
     input: fileStream,
     crlfDelay: Infinity,
   });
 
-  for await (let line of rl) {
-    let cmd = '';
-    let originalLine = line;
-    let isLineReplaced = false;
-    for (cmd of input.commands) {
-      cmd = command.buildCommand(cmd);
-      if (cmd.g) {
-        // eslint-disable-next-line prefer-const
-        let searchExp = new RegExp(cmd.search, 'g');
-        line = line.replace(searchExp, cmd.replace);
-      } else {
-        line = line.replace(cmd.search, cmd.replace);
-      }
+  if (input.i) {
+    const newFilePath = file.createEmptyFile(input.path);
+    writeStream = fs.createWriteStream(newFilePath);
+  }
+  const linesInFile = file.countInputFileLines(input.path);
 
-      isLineReplaced = originalLine !== line;
-      if (isLineReplaced) {
-        originalLine = line;
-        if (cmd.p) {
-          if (input.i) {
-            writeStream.write(`${line}\n`);
-          } else {
-            process.stdout.write(`${line}\n`);
-          }
-        }
+  let countLines = 1;
+  for await (const line of rl) {
+    let cmd = '';
+    let newLine = line;
+    const isLastLine = linesInFile === countLines;
+    let isLastCommand;
+    for (cmd of input.commands) {
+      isLastCommand =
+        input.commands.lastIndexOf(cmd) === input.commands.length - 1;
+      newLine = replaceLine(newLine, cmd.search, cmd.replace, cmd.g);
+      if (newLine !== line && cmd.p) {
+        outputLine(
+          newLine,
+          writeStream,
+          input.i,
+          isLastLine,
+          isLastCommand,
+          input.n
+        );
       }
     }
     if (!input.n) {
-      if (input.i) {
-        writeStream.write(`${line}\n`);
-      } else {
-        process.stdout.write(`${line}\n`);
+      if (cmd.p) {
+        outputLine(
+          newLine,
+          writeStream,
+          input.i,
+          isLastLine,
+          isLastCommand,
+          true
+        );
       }
     }
+    countLines += 1;
   }
 }
+const replaceLine = (line, search, replace, isGlobal) => {
+  let newLine = line;
+  if (isGlobal) {
+    const searchExp = new RegExp(search, 'g');
+    newLine = line.replace(searchExp, replace);
+  } else {
+    newLine = line.replace(search, replace);
+  }
+  return newLine;
+};
+const outputLine = (
+  line,
+  writeStream,
+  i,
+  isLastLine,
+  isLastCommand,
+  lastOutput
+) => {
+  if (i) {
+    isLastLine && isLastCommand && lastOutput
+      ? writeStream.write(`${line}`)
+      : writeStream.write(`${line}\n`);
+  } else {
+    isLastLine && isLastCommand && lastOutput
+      ? process.stdout.write(`${line}`)
+      : process.stdout.write(`${line}\n`);
+  }
+};
 module.exports = { Substitute };

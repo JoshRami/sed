@@ -18,14 +18,14 @@ const isValidFile = (filePath, writable = false) => {
 // eslint-disable-next-line consistent-return
 const getCheckedFilePath = (filePath) => {
   const absoluteFilePath = getAbsoluteFilePath(filePath);
-  if (isValidFile(absoluteFilePath)) {
+  if (isValidFile(absoluteFilePath, true)) {
     return absoluteFilePath;
   }
 };
 
 const readCommands = (filePath) => {
   const commands = [];
-  if (isValidFile(filePath, true)) {
+  if (isValidFile(filePath)) {
     try {
       const data = fs.readFileSync(filePath, 'UTF-8');
       commands.push(...data.split(/\r?\n/));
@@ -38,9 +38,12 @@ const readCommands = (filePath) => {
   return commands;
 };
 
-const createEmptyFile = (directory, fileName) => {
+const createEmptyFile = (filePath) => {
+  const fileName = path.basename(filePath);
+  const directory = filePath.replace(fileName, '');
+  const newFileName = `new_${fileName}`;
   try {
-    const newFilePath = path.join(directory, fileName);
+    const newFilePath = path.join(directory, newFileName);
     fs.closeSync(fs.openSync(newFilePath, 'w'));
     return newFilePath;
   } catch (error) {
@@ -53,17 +56,22 @@ const getAbsoluteFilePath = (filePath) => {
   }
   return path.resolve(filePath);
 };
-const getFileName = (filePath) => {
-  return path.basename(filePath);
-};
-const getDirectory = (filePath, fileName) => {
-  return filePath.replace(fileName, '');
+const countInputFileLines = (filePath) => {
+  let data;
+  try {
+    data = fs.readFileSync(filePath, 'UTF-8');
+    data = data.split('\n').length;
+  } catch (err) {
+    throw Error(
+      `sed: Something bad happened while reading process of file ${filePath}`
+    );
+  }
+  return data;
 };
 
 module.exports = {
   createEmptyFile,
   readCommands,
   getCheckedFilePath,
-  getFileName,
-  getDirectory,
+  countInputFileLines,
 };

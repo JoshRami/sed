@@ -19,7 +19,9 @@ const parseInput = (argv) => {
     commands.commands.push(...parsedCommands);
     commands.path = filePath;
   }
-
+  commands.commands = commands.commands.map((command) => {
+    return buildCommand(command);
+  });
   return commands;
 };
 const parseCommands = (argv) => {
