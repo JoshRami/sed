@@ -40,21 +40,21 @@ async function Substitute() {
         );
       }
     }
+
     if (!input.n) {
-      if (cmd.p) {
-        outputLine(
-          newLine,
-          writeStream,
-          input.i,
-          isLastLine,
-          isLastCommand,
-          true
-        );
-      }
+      outputLine(
+        newLine,
+        writeStream,
+        input.i,
+        isLastLine,
+        isLastCommand,
+        true
+      );
     }
     countLines += 1;
   }
 }
+
 const replaceLine = (line, search, replace, isGlobal) => {
   let newLine = line;
   if (isGlobal) {
